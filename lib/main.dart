@@ -1,6 +1,5 @@
+//Dependencies
 import 'dart:io';
-
-import 'package:airclip/viewmodels/clipboard_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -9,7 +8,6 @@ import 'package:airclip/app.dart';
 import 'package:airclip/widgets/tray_widget.dart';
 import 'package:airclip/viewmodels/auth_viewmodel.dart';
 import 'package:airclip/viewmodels/clipboard_history_viewmodel.dart';
-
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -48,7 +46,6 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ClipboardViewModel()),
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
         ChangeNotifierProvider(create: (_) => ClipboardHistoryViewModel()),
       ],

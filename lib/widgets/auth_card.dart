@@ -59,7 +59,7 @@ class _AuthCardState extends State<AuthCard>
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       color: const Color(0xFF0B0E1A),
       elevation: 12,
-      shadowColor: Colors.black.withOpacity(0.4),
+      shadowColor: const Color.fromRGBO(0, 0, 0, 0.4),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(

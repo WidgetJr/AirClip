@@ -1,3 +1,4 @@
+//Dependencies
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 

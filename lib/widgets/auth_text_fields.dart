@@ -1,3 +1,4 @@
+//Dependencies
 import 'package:flutter/material.dart';
 
 class AuthTextFields extends StatefulWidget {
