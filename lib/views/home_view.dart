@@ -88,10 +88,8 @@ class _HomeViewState extends State<HomeView> {
         preferredSize: const Size.fromHeight(70),
         child: Container(
           decoration: const BoxDecoration(
-            color: Color(0xFF0B0E1A), // o el color que estés usando de fondo
-            borderRadius: BorderRadius.vertical(
-              bottom: Radius.circular(20), // 🎯 Esquinas inferiores redondeadas
-            ),
+            color: Color(0xFF0B0E1A),
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
           ),
           child: AppBar(
             backgroundColor: Colors.transparent,
@@ -214,7 +212,7 @@ class _HomeViewState extends State<HomeView> {
                                             ).showSnackBar(
                                               const SnackBar(
                                                 content: Text(
-                                                  'Texto copiado al portapapeles',
+                                                  'Text copied to clipboard',
                                                 ),
                                               ),
                                             );
