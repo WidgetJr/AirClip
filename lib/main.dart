@@ -1,4 +1,3 @@
-//Dependencies
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -21,8 +20,19 @@ void main() async {
   windowManager.waitUntilReadyToShow().then((_) async {
     await windowManager.setSize(const Size(400, 600));
     await windowManager.setMinimumSize(const Size(400, 600));
-    await windowManager.setSkipTaskbar(true);
-    await windowManager.hide();
+
+    if (!Platform.isMacOS) {
+      await windowManager.setSkipTaskbar(true);
+    }
+
+    await windowManager.show();
+
+    if (!Platform.isMacOS) {
+      await windowManager.setResizable(false);
+    }
+
+    await windowManager.center();
+    await windowManager.focus();
   });
 
   await trayManager.setIcon(
