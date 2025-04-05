@@ -10,12 +10,21 @@ import 'package:airclip/viewmodels/clipboard_history_viewmodel.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
+class WindowCloseHandler with WindowListener {
+  @override
+  void onWindowClose() async {
+    await windowManager.hide();
+  }
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
 
   await windowManager.ensureInitialized();
+  await windowManager.setPreventClose(true);
+  windowManager.addListener(WindowCloseHandler());
 
   windowManager.waitUntilReadyToShow().then((_) async {
     await windowManager.setSize(const Size(400, 600));

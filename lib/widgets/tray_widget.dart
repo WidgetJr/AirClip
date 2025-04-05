@@ -11,12 +11,14 @@ class TrayWidget with TrayListener {
 
   @override
   void onTrayMenuItemClick(MenuItem menuItem) async {
-    if (menuItem.key == 'show') {
-      await windowManager.show();
-      await windowManager.focus();
-    } else if (menuItem.key == 'exit') {
-      await trayManager.destroy();
-      await windowManager.destroy();
+    switch (menuItem.key) {
+      case 'show':
+        await windowManager.show();
+        await windowManager.focus();
+        break;
+      case 'exit':
+        await windowManager.destroy();
+        break;
     }
   }
 }
