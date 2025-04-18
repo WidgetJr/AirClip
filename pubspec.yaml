@@ -1,5 +1,5 @@
 name: airclip
-description: "A new Flutter project."
+description: "Airclip is a cross-platform clipboard manager that allows you to store and manage multiple clipboard entries. It is designed to be lightweight, fast, and easy to use. Airclip is built using Flutter and Dart, and it supports Windows, macOS, and Linux platforms."
 publish_to: "none"
 
 version: 1.0.0+1
