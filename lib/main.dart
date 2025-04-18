@@ -2,13 +2,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:airclip/config/constants.dart';
 import 'package:airclip/app.dart';
 import 'package:airclip/widgets/tray_widget.dart';
 import 'package:airclip/viewmodels/auth_viewmodel.dart';
 import 'package:airclip/viewmodels/clipboard_history_viewmodel.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class WindowCloseHandler with WindowListener {
   @override
@@ -19,8 +19,12 @@ class WindowCloseHandler with WindowListener {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
 
-  await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
+  await Supabase.initialize(
+    url: dotenv.env['SUPABASE_URL']!,
+    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
+  );
 
   await windowManager.ensureInitialized();
   await windowManager.setPreventClose(true);
