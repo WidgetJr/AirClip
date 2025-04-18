@@ -201,7 +201,7 @@ class _HomeViewState extends State<HomeView> {
                                           foregroundColor: Colors.black,
                                         ),
                                         icon: const Icon(Icons.copy),
-                                        label: const Text('Copiar'),
+                                        label: const Text('Copy'),
                                         onPressed: () async {
                                           await Clipboard.setData(
                                             ClipboardData(text: content),
