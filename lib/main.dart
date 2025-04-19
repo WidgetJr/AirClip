@@ -1,14 +1,20 @@
+// Dart core
 import 'dart:io';
+
+// Flutter SDK
 import 'package:flutter/material.dart';
+
+// Flutter packages
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:window_manager/window_manager.dart';
+
+// Internal app imports
 import 'package:airclip/app.dart';
-import 'package:airclip/widgets/tray_widget.dart';
 import 'package:airclip/viewmodels/auth_viewmodel.dart';
 import 'package:airclip/viewmodels/clipboard_history_viewmodel.dart';
-import 'package:tray_manager/tray_manager.dart';
-import 'package:window_manager/window_manager.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:airclip/Services/tray_service.dart';
 
 class WindowCloseHandler with WindowListener {
   @override
@@ -19,6 +25,7 @@ class WindowCloseHandler with WindowListener {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await dotenv.load(fileName: ".env");
 
   await Supabase.initialize(
@@ -30,41 +37,17 @@ void main() async {
   await windowManager.setPreventClose(true);
   windowManager.addListener(WindowCloseHandler());
 
-  windowManager.waitUntilReadyToShow().then((_) async {
+  await windowManager.waitUntilReadyToShow().then((_) async {
     await windowManager.setSize(const Size(400, 600));
     await windowManager.setMinimumSize(const Size(400, 600));
-
-    if (!Platform.isMacOS) {
-      await windowManager.setSkipTaskbar(true);
-    }
-
+    if (!Platform.isMacOS) await windowManager.setSkipTaskbar(true);
     await windowManager.show();
-
-    if (!Platform.isMacOS) {
-      await windowManager.setResizable(false);
-    }
-
+    if (!Platform.isMacOS) await windowManager.setResizable(false);
     await windowManager.center();
     await windowManager.focus();
   });
 
-  await trayManager.setIcon(
-    Platform.isWindows ? 'assets/app_icon.ico' : 'assets/app_icon.png',
-  );
-
-  await trayManager.setToolTip('AirClip');
-
-  await trayManager.setContextMenu(
-    Menu(
-      items: [
-        MenuItem(key: 'show', label: 'Mostrar AirClip'),
-        MenuItem.separator(),
-        MenuItem(key: 'exit', label: 'Salir'),
-      ],
-    ),
-  );
-
-  trayManager.addListener(TrayWidget());
+  await initTray();
 
   runApp(
     MultiProvider(
