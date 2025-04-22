@@ -43,58 +43,6 @@ class _HomeViewState extends State<HomeView> {
           userId: user.id,
         );
 
-        // _clipboardService!.init().then((_) {
-        //   _clipboardService!.clipStream.listen((remoteData) async {
-        //     try {
-        //       if (remoteData.startsWith('[img]')) {
-        //         final imageUrl = remoteData.substring(5);
-
-        //         try {
-        //           // // 🔽 Descargar la imagen desde la URL
-        //           // final response = await http.get(Uri.parse(imageUrl));
-        //           // final tempDir = await getTemporaryDirectory();
-        //           // final file = File(
-        //           //   '${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}.png',
-        //           // );
-        //           // await file.writeAsBytes(response.bodyBytes);
-
-        //           // final imageClipboard = ImageClipboard();
-        //           // await imageClipboard.copyImage(file.path);
-        //           // copyImageToClipboard(file.path);
-
-        //           final file = await downloadImageToTempFile(imageUrl);
-        //           await copyImageToClipboard(file);
-
-        //           historyVM.addEntry(imageUrl, isImage: true);
-
-        //           if (mounted) {
-        //             ScaffoldMessenger.of(context).showSnackBar(
-        //               const SnackBar(
-        //                 content: Text('🖼 Imagen sincronizada al portapapeles'),
-        //               ),
-        //             );
-        //           }
-        //         } catch (e) {
-        //           print('❌ Error al procesar imagen sincronizada: $e');
-        //           historyVM.setError('Error al pegar imagen sincronizada: $e');
-        //         }
-        //       } else {
-        //         await Clipboard.setData(ClipboardData(text: remoteData));
-        //         historyVM.addEntry(remoteData, isImage: false);
-        //         if (mounted) {
-        //           ScaffoldMessenger.of(context).showSnackBar(
-        //             const SnackBar(
-        //               content: Text('Texto sincronizado al portapapeles'),
-        //             ),
-        //           );
-        //         }
-        //       }
-        //     } catch (e) {
-        //       historyVM.setError('Clipboard error: $e');
-        //     }
-        //   });
-        // });
-
         _clipboardService!.init().then((_) {
           _clipboardService!.clipStream.listen((remoteData) async {
             try {
@@ -189,9 +137,35 @@ class _HomeViewState extends State<HomeView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
-                      'AirClip',
-                      style: TextStyle(fontSize: 30, color: Color(0xFF00E5FF)),
+                    Row(
+                      children: [
+                        const Text(
+                          'AirClip',
+                          style: TextStyle(
+                            fontSize: 30,
+                            color: Color(0xFF00E5FF),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.amber,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'BETA',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     Text(
                       fullName,
