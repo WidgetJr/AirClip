@@ -1,6 +1,10 @@
-//Dependencies
+// Dart core
 import 'dart:async';
+import 'dart:io';
+
+// External packages
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 class ClipboardService {
   final SupabaseClient _client;
@@ -49,6 +53,20 @@ class ClipboardService {
       'content': content,
       'timestamp': DateTime.now().toUtc().toIso8601String(),
     });
+  }
+
+  Future<void> sendImage(File imageFile) async {
+    final fileName = '${const Uuid().v4()}.png';
+
+    await _client.storage
+        .from('images')
+        .upload('clipboard/$fileName', imageFile);
+
+    final signedUrl = _client.storage
+        .from('images')
+        .getPublicUrl('clipboard/$fileName');
+
+    await sendClip('[img]$signedUrl');
   }
 
   void dispose() {

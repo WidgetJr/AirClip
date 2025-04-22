@@ -1,6 +1,10 @@
-//Dependencies
+// Flutter SDK
 import 'package:flutter/material.dart';
+
+// Flutter packages
 import 'package:provider/provider.dart';
+
+// Internal app imports
 import 'package:airclip/viewmodels/auth_viewmodel.dart';
 import 'package:airclip/widgets/auth_card.dart';
 

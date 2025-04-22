@@ -1,11 +1,20 @@
-//Dependencies
+// Flutter SDK
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+// Flutter packages
+import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:image_clipboard/image_clipboard.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+// Internal app imports
+import 'package:airclip/utils/clipboard_utils.dart';
 import 'package:airclip/services/clipboard_service.dart';
 import 'package:airclip/services/clipboard_watcher.dart';
 import 'package:airclip/services/device_service.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:airclip/viewmodels/clipboard_history_viewmodel.dart';
 
 class HomeView extends StatefulWidget {
@@ -34,16 +43,90 @@ class _HomeViewState extends State<HomeView> {
           userId: user.id,
         );
 
-        _clipboardService!.init().then((_) {
-          _clipboardService!.clipStream.listen((remoteText) async {
-            try {
-              await Clipboard.setData(ClipboardData(text: remoteText));
-              historyVM.addEntry(remoteText);
+        // _clipboardService!.init().then((_) {
+        //   _clipboardService!.clipStream.listen((remoteData) async {
+        //     try {
+        //       if (remoteData.startsWith('[img]')) {
+        //         final imageUrl = remoteData.substring(5);
 
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Clipboard updated')),
-                );
+        //         try {
+        //           // // 🔽 Descargar la imagen desde la URL
+        //           // final response = await http.get(Uri.parse(imageUrl));
+        //           // final tempDir = await getTemporaryDirectory();
+        //           // final file = File(
+        //           //   '${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}.png',
+        //           // );
+        //           // await file.writeAsBytes(response.bodyBytes);
+
+        //           // final imageClipboard = ImageClipboard();
+        //           // await imageClipboard.copyImage(file.path);
+        //           // copyImageToClipboard(file.path);
+
+        //           final file = await downloadImageToTempFile(imageUrl);
+        //           await copyImageToClipboard(file);
+
+        //           historyVM.addEntry(imageUrl, isImage: true);
+
+        //           if (mounted) {
+        //             ScaffoldMessenger.of(context).showSnackBar(
+        //               const SnackBar(
+        //                 content: Text('🖼 Imagen sincronizada al portapapeles'),
+        //               ),
+        //             );
+        //           }
+        //         } catch (e) {
+        //           print('❌ Error al procesar imagen sincronizada: $e');
+        //           historyVM.setError('Error al pegar imagen sincronizada: $e');
+        //         }
+        //       } else {
+        //         await Clipboard.setData(ClipboardData(text: remoteData));
+        //         historyVM.addEntry(remoteData, isImage: false);
+        //         if (mounted) {
+        //           ScaffoldMessenger.of(context).showSnackBar(
+        //             const SnackBar(
+        //               content: Text('Texto sincronizado al portapapeles'),
+        //             ),
+        //           );
+        //         }
+        //       }
+        //     } catch (e) {
+        //       historyVM.setError('Clipboard error: $e');
+        //     }
+        //   });
+        // });
+
+        _clipboardService!.init().then((_) {
+          _clipboardService!.clipStream.listen((remoteData) async {
+            try {
+              if (remoteData.startsWith('[img]')) {
+                final imageUrl = remoteData.substring(5);
+
+                try {
+                  final file = await downloadImageToTempFile(imageUrl);
+                  await copyImageToClipboard(file);
+
+                  historyVM.addEntry(imageUrl, isImage: true);
+
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Image synced to clipboard'),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  print('Error processing synced image: $e');
+                  historyVM.setError('Error pasting synced image: $e');
+                }
+              } else {
+                await Clipboard.setData(ClipboardData(text: remoteData));
+                historyVM.addEntry(remoteData, isImage: false);
+
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Text synced to clipboard')),
+                  );
+                }
               }
             } catch (e) {
               historyVM.setError('Clipboard error: $e');
@@ -52,10 +135,14 @@ class _HomeViewState extends State<HomeView> {
         });
 
         _clipboardWatcher = ClipboardWatcher(
-          onClipboardChange: (copiedText) {
+          onTextChange: (copiedText) {
             _clipboardService!.sendClip(copiedText);
           },
+          onImagePaste: (imageFile) {
+            _clipboardService!.sendImage(imageFile);
+          },
         );
+
         _clipboardWatcher!.start();
       });
     }
@@ -152,9 +239,12 @@ class _HomeViewState extends State<HomeView> {
                       padding: const EdgeInsets.all(16),
                       itemCount: clipboardHistory.length,
                       itemBuilder: (context, index) {
-                        final content = clipboardHistory[index];
+                        final entry = clipboardHistory[index];
+                        final isImage = entry.isImage;
+                        final content = entry.content;
+
                         final preview =
-                            content.length > 40
+                            !isImage && content.length > 40
                                 ? '${content.substring(0, 40)}...'
                                 : content;
 
@@ -163,9 +253,9 @@ class _HomeViewState extends State<HomeView> {
                           child: ExpansionTile(
                             title: Row(
                               children: [
-                                const Icon(
-                                  Icons.content_copy,
-                                  color: Color(0xFF00E5FF),
+                                Icon(
+                                  isImage ? Icons.image : Icons.content_copy,
+                                  color: const Color(0xFF00E5FF),
                                 ),
                                 const SizedBox(width: 10),
                                 Expanded(
@@ -186,18 +276,102 @@ class _HomeViewState extends State<HomeView> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      content,
-                                      style: const TextStyle(
-                                        color: Colors.white70,
+                                    if (isImage)
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.network(
+                                          content,
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  const Text(
+                                                    'Error loading image',
+                                                    style: TextStyle(
+                                                      color: Colors.redAccent,
+                                                    ),
+                                                  ),
+                                        ),
+                                      )
+                                    else
+                                      Text(
+                                        content,
+                                        style: const TextStyle(
+                                          color: Colors.white70,
+                                        ),
                                       ),
-                                    ),
                                     const SizedBox(height: 8),
+
+                                    if (isImage)
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: ElevatedButton.icon(
+                                          icon: const Icon(Icons.paste),
+                                          label: const Text(
+                                            'Copy Image into Clipboard',
+                                          ),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: const Color(
+                                              0xFF00E5FF,
+                                            ),
+                                            foregroundColor: Colors.black,
+                                          ),
+                                          onPressed: () async {
+                                            try {
+                                              final response = await http.get(
+                                                Uri.parse(content),
+                                              );
+                                              final tempDir =
+                                                  await getTemporaryDirectory();
+                                              final file = File(
+                                                '${tempDir.path}/manual_clip.png',
+                                              );
+                                              await file.writeAsBytes(
+                                                response.bodyBytes,
+                                              );
+
+                                              final imageClipboard =
+                                                  ImageClipboard();
+                                              await imageClipboard.copyImage(
+                                                file.path,
+                                              );
+
+                                              if (context.mounted) {
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text(
+                                                      'Image copied to clipboard',
+                                                    ),
+                                                  ),
+                                                );
+                                              }
+                                            } catch (e) {
+                                              print('Error copyng image: $e');
+                                              if (context.mounted) {
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text(
+                                                      'Error copying image',
+                                                    ),
+                                                  ),
+                                                );
+                                              }
+                                            }
+                                          },
+                                        ),
+                                      ),
+
+                                    const SizedBox(height: 8),
+
                                     Align(
                                       alignment: Alignment.centerRight,
                                       child: ElevatedButton.icon(
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: Color(0xFF00E5FF),
+                                          backgroundColor: const Color(
+                                            0xFF00E5FF,
+                                          ),
                                           foregroundColor: Colors.black,
                                         ),
                                         icon: const Icon(Icons.copy),
@@ -210,9 +384,11 @@ class _HomeViewState extends State<HomeView> {
                                             ScaffoldMessenger.of(
                                               context,
                                             ).showSnackBar(
-                                              const SnackBar(
+                                              SnackBar(
                                                 content: Text(
-                                                  'Text copied to clipboard',
+                                                  isImage
+                                                      ? 'Image copied to clipboard'
+                                                      : 'Text copied to clipboard',
                                                 ),
                                               ),
                                             );
